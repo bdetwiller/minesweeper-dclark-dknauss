@@ -22,6 +22,17 @@ class Board
     add_bombs
   end
 
+  def add_bombs
+    bombs = 0
+    until bombs == @num_bombs
+      current_tile = @board.sample.sample
+      unless current_tile.bomb?
+        current_tile.make_bomb
+        bombs += 1
+      end
+    end
+  end
+
   def display
     display_small if @board_dimension == 9
     display_large if @board_dimension == 16
@@ -63,26 +74,6 @@ class Board
     puts
   end
 
-  def add_bombs
-    bombs = 0
-    until bombs == @num_bombs
-      current_tile = @board.sample.sample
-      unless current_tile.bomb?
-        current_tile.make_bomb
-        bombs += 1
-      end
-    end
-  end
-
-  def print_bombs
-    @board.each_with_index do |row, i|
-      row.each_with_index do |tile, j|
-        print "#{[j,i]} " if @board[i][j].bomb?
-      end
-    end
-    puts
-  end
-
   def select_tile(coordinates)
     x, y = coordinates
     @board[y][x]
@@ -108,6 +99,23 @@ class Board
     end
   end
 
+  def valid_tile?(coordinates)
+    x,y = coordinates
+    (0..(@board_dimension - 1)).include?(x) &&
+    (0..(@board_dimension - 1)).include?(y) &&
+    ['*','F'].include?(@board[y][x].display)
+  end
+
+  def tile_neighbors(coordinates)
+    neighbors_coords = []
+    deltas = [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]]
+    deltas.each do |delta|
+      neighbor_coords = [delta, coordinates].transpose.map {|x| x.reduce(:+)}
+      neighbors_coords << neighbor_coords if valid_tile?(neighbor_coords)
+    end
+    neighbors_coords
+  end
+
   def count_surrounding_bombs(coordinates)
     bombs = 0
     tile_neighbors(coordinates).each do |neighbor_coords|
@@ -123,23 +131,6 @@ class Board
 
   def game_over?
     @game_over
-  end
-
-  def tile_neighbors(coordinates)
-    neighbors_coords = []
-    deltas = [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]]
-    deltas.each do |delta|
-      neighbor_coords = [delta, coordinates].transpose.map {|x| x.reduce(:+)}
-      neighbors_coords << neighbor_coords if valid_tile?(neighbor_coords)
-    end
-    neighbors_coords
-  end
-
-  def valid_tile?(coordinates)
-    x,y = coordinates
-    (0..(@board_dimension - 1)).include?(x) &&
-    (0..(@board_dimension - 1)).include?(y) &&
-    ['*','F'].include?(@board[y][x].display)
   end
 
   def won?
@@ -219,6 +210,18 @@ class Game
     @board = Board.new(size)
   end
 
+  def quit
+    puts "Are you sure you want to quit (y/n)?"
+    @board.lost if gets.chomp.upcase[0] == 'Y'
+  end
+
+  def help
+    puts 'Enter coordinates prefixed by "r" or "f" to reveal/flag (e.g. "rA1")'
+    puts 'or "q" to quit, "s" to save, or "h" to show this message.'
+    puts 'Hit the <AnyKey>-key to dismiss.'
+    gets
+  end
+
   def parse_coordinates(user_input)
     # user_input = "R#{user_input}" if user_input.length == 2
     mode = case user_input[0]
@@ -278,11 +281,6 @@ class Game
     end
   end
 
-  def quit
-    puts "Are you sure you want to quit (y/n)?"
-    @board.lost if gets.chomp.upcase[0] == 'Y'
-  end
-
   def clean_filename(user_input)
     return "my_saved_game" if user_input.length < 1
     user_input = user_input[0,140] if user_input.length > 140
@@ -298,10 +296,6 @@ class Game
     end
   end
 
-  def help
-    puts 'Enter coordinates prefixed by "r" or "f" to reveal/flag (e.g. "rA1")'
-    puts 'or "q" to quit, "s" to save, or "h" to show this message.'
-  end
 end
 
 game = Game.new
