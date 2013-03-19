@@ -38,7 +38,7 @@ class Board
     display_large if @board_dimension == 16
   end
 
-  def display_small
+  def display_small #REV, Really nice display! Seems like you could make one display method that handles both small and large cases
     puts
     print '      '
     "A".upto("I") { |num| print "#{num}  " }
@@ -172,7 +172,7 @@ class Tile
   end
 end
 
-class Game
+class Game #REV this class is super clean. Good the use of cases!
   attr_accessor :board
 
   def print_welcome_shit
@@ -241,7 +241,7 @@ class Game
     end
   end
 
-  def get_coordinates_and_mode
+  def get_coordinates_and_mode #REV, I couldn't get it to accept any input I gave it, 2B, B2, 2B R, 22, 2,2 etc. 
     print "Enter coordinates: "
     coordinates, mode = parse_coordinates(gets.chomp.upcase)
     until valid_input?(coordinates, mode)
@@ -268,7 +268,7 @@ class Game
   end
 
   def play
-    print_welcome_shit
+    print_welcome_shit #REV haha
     get_load_or_new_game
     until @board.game_over? || @board.won?
       @board.display
